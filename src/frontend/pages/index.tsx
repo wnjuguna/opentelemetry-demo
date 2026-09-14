@@ -3,6 +3,7 @@
 
 import { NextPage } from 'next';
 import Head from 'next/head';
+import { useEffect } from 'react';
 import Layout from '../components/Layout';
 import ProductList from '../components/ProductList';
 import * as S from '../styles/Home.styled';
@@ -11,9 +12,14 @@ import ApiGateway from '../gateways/Api.gateway';
 import Banner from '../components/Banner';
 import { CypressFields } from '../utils/enums/CypressFields';
 import { useCurrency } from '../providers/Currency.provider';
+import { setProductLabel } from '../utils/rum/labels';
 
 const Home: NextPage = () => {
   const { selectedCurrency } = useCurrency();
+
+  useEffect(() => {
+    setProductLabel('home');
+  }, []);
   const { data: productList = [] } = useQuery({
     queryKey: ['products', selectedCurrency],
     queryFn: () => ApiGateway.listProducts(selectedCurrency),

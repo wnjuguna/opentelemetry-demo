@@ -3,6 +3,7 @@
 
 import { NextPage } from 'next';
 import Head from 'next/head';
+import { useEffect } from 'react';
 import Layout from '../../components/Layout';
 import Recommendations from '../../components/Recommendations';
 import * as S from '../../styles/Cart.styled';
@@ -10,11 +11,18 @@ import CartDetail from '../../components/Cart/CartDetail';
 import EmptyCart from '../../components/Cart/EmptyCart';
 import { useCart } from '../../providers/Cart.provider';
 import AdProvider from '../../providers/Ad.provider';
+import { setProductLabel } from '../../utils/rum/labels';
 
 const Cart: NextPage = () => {
   const {
     cart: { items },
   } = useCart();
+
+  useEffect(() => {
+    if (!items.length) {
+      setProductLabel('cart');
+    }
+  }, [items.length]);
 
   return (
     <AdProvider

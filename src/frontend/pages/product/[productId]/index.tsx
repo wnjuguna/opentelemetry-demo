@@ -5,7 +5,7 @@ import { NextPage } from 'next';
 import Head from 'next/head';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Ad from '../../../components/Ad';
 import Layout from '../../../components/Layout';
@@ -19,12 +19,16 @@ import AdProvider from '../../../providers/Ad.provider';
 import { useCart } from '../../../providers/Cart.provider';
 import * as S from '../../../styles/ProductDetail.styled';
 import { useCurrency } from '../../../providers/Currency.provider';
+import { captureNoisyProductDetailError } from '../../../utils/rum/events';
+import { setProductLabel } from '../../../utils/rum/labels';
+import { fetchRuntimeConfig } from '../../../utils/rum/runtimeConfig';
 
 const quantityOptions = new Array(10).fill(0).map((_, i) => i + 1);
 
 const ProductDetail: NextPage = () => {
   const { push, query } = useRouter();
   const [quantity, setQuantity] = useState(1);
+  const noisyBugHandled = useRef(false);
   const {
     addItem,
     cart: { items },
@@ -34,6 +38,37 @@ const ProductDetail: NextPage = () => {
 
   useEffect(() => {
     setQuantity(1);
+  }, [productId]);
+
+  useEffect(() => {
+    setProductLabel('product-detail');
+  }, [productId]);
+
+  useEffect(() => {
+    noisyBugHandled.current = false;
+  }, [productId]);
+
+  useEffect(() => {
+    if (!productId || noisyBugHandled.current) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void fetchRuntimeConfig().then(runtimeConfig => {
+      if (cancelled || !runtimeConfig.bugNoisy || noisyBugHandled.current) {
+        return;
+      }
+
+      noisyBugHandled.current = true;
+      captureNoisyProductDetailError(
+        new Error(`Demo noisy product-detail distractor for product ${productId}`)
+      );
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [productId]);
 
   const {

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import '../styles/globals.css';
+import { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App, { AppContext, AppProps } from 'next/app';
 import CurrencyProvider from '../providers/Currency.provider';
@@ -10,6 +11,7 @@ import { ThemeProvider } from 'styled-components';
 import Theme from '../styles/Theme';
 import FrontendTracer from '../utils/telemetry/FrontendTracer';
 import SessionGateway from '../gateways/Session.gateway';
+import { initCoralogixRum } from '../utils/rum/initRum';
 import { OpenFeatureProvider, OpenFeature } from '@openfeature/react-sdk';
 import { FlagdWebProvider } from '@openfeature/flagd-web-provider';
 
@@ -59,6 +61,11 @@ if (typeof window !== 'undefined') {
 const queryClient = new QueryClient();
 
 function MyApp({ Component, pageProps }: AppProps) {
+  useEffect(() => {
+    const session = SessionGateway.getSession();
+    void initCoralogixRum(session.userId);
+  }, []);
+
   return (
     <ThemeProvider theme={Theme}>
       <OpenFeatureProvider>
