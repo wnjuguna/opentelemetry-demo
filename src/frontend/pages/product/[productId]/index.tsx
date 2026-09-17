@@ -62,7 +62,7 @@ const ProductDetail: NextPage = () => {
 
       noisyBugHandled.current = true;
       captureNoisyProductDetailError(
-        new Error(`Demo noisy product-detail distractor for product ${productId}`)
+        new Error(`Failed to load related products for ${productId}`)
       );
     });
 
