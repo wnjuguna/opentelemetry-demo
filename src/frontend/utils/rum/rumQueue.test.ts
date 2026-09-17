@@ -113,4 +113,48 @@ describe('rumQueue readiness', () => {
     assert.equal(info.mock.callCount(), 1);
     assert.equal(__testing__.getPendingOperations().length, 0);
   });
+
+  it('flushes checkout_completed milestone with standard RUM info shape', () => {
+    const setLabels = mock.fn();
+    const info = mock.fn();
+    setRumExecutorForTests({ setLabels, info, captureError: mock.fn() });
+
+    queueSetProductLabel('checkout');
+    queueEmitMilestone('checkout_completed', 'checkout');
+
+    markRumReady();
+
+    assert.equal(info.mock.callCount(), 1);
+    assert.equal(info.mock.calls[0]?.arguments[0], 'checkout_completed');
+    assert.deepEqual(info.mock.calls[0]?.arguments[1], {
+      milestone: 'checkout_completed',
+      product: 'checkout',
+    });
+    assert.deepEqual(info.mock.calls[0]?.arguments[2], {
+      product: 'checkout',
+      milestone: 'checkout_completed',
+      event_type: 'milestone',
+    });
+  });
+
+  it('emits checkout_completed immediately when RUM is already ready', () => {
+    const info = mock.fn();
+    setRumExecutorForTests({ setLabels: mock.fn(), info, captureError: mock.fn() });
+
+    markRumReady();
+    queueEmitMilestone('checkout_completed', 'checkout');
+
+    assert.equal(__testing__.getPendingOperations().length, 0);
+    assert.equal(info.mock.callCount(), 1);
+    assert.equal(info.mock.calls[0]?.arguments[0], 'checkout_completed');
+    assert.deepEqual(info.mock.calls[0]?.arguments[1], {
+      milestone: 'checkout_completed',
+      product: 'checkout',
+    });
+    assert.deepEqual(info.mock.calls[0]?.arguments[2], {
+      product: 'checkout',
+      milestone: 'checkout_completed',
+      event_type: 'milestone',
+    });
+  });
 });

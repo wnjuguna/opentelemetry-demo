@@ -11,7 +11,11 @@ export const PRODUCT_LABELS = [
 
 export type ProductLabel = (typeof PRODUCT_LABELS)[number];
 
-export const DEMO_MILESTONES = ['checkout_started', 'payment_completed'] as const;
+export const DEMO_MILESTONES = [
+  'checkout_started',
+  'checkout_completed',
+  'payment_completed',
+] as const;
 
 export type DemoMilestone = (typeof DEMO_MILESTONES)[number];
 

@@ -88,6 +88,8 @@ const CartDetail = () => {
         },
       });
 
+      emitMilestone('checkout_completed', 'checkout');
+
       push({
         pathname: `/cart/checkout/${order.orderId}`,
         query: { order: JSON.stringify(order) },

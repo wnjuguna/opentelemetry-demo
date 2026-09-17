@@ -16,8 +16,13 @@ describe('RUM demo constants', () => {
     ]);
   });
 
-  it('defines checkout and payment milestones only', () => {
-    assert.deepEqual([...DEMO_MILESTONES], ['checkout_started', 'payment_completed']);
+  it('defines checkout funnel milestones in order', () => {
+    assert.deepEqual([...DEMO_MILESTONES], [
+      'checkout_started',
+      'checkout_completed',
+      'payment_completed',
+    ]);
+    assert.equal(isDemoMilestone('checkout_completed'), true);
     assert.equal(isDemoMilestone('browse'), false);
     assert.equal(isDemoMilestone('browse_started'), false);
   });
