@@ -5,8 +5,44 @@ import { CoralogixRum } from '@coralogix/browser';
 import type { CoralogixDomain } from '@coralogix/browser';
 import { markRumReady, markRumUnavailable } from './rumQueue';
 import { fetchRuntimeConfig } from './runtimeConfig';
+import type { RumRuntimeConfig } from './types';
 
 let initStarted = false;
+
+export const buildCoralogixRumInitOptions = (config: RumRuntimeConfig, userId?: string) => ({
+  public_key: config.publicKey,
+  application: config.application,
+  environment: config.environment,
+  version: config.version,
+  coralogixDomain: config.coralogixDomain as CoralogixDomain,
+  ...(config.coralogixDomainUrl ? { coralogixDomainUrl: config.coralogixDomainUrl } : {}),
+  ...(userId
+    ? {
+        user_context: {
+          user_id: userId,
+          user_name: userId,
+        },
+      }
+    : {}),
+  sessionRecordingConfig: {
+    enable: true,
+    autoStartSessionRecording: true,
+    recordConsoleEvents: true,
+    sessionRecordingSampleRate: 100,
+  },
+  traceParentInHeader: {
+    enabled: true,
+  },
+  instrumentations: {
+    xhr: true,
+    fetch: true,
+    web_vitals: true,
+    interactions: true,
+    errors: true,
+    long_tasks: true,
+    resources: true,
+  },
+});
 
 export const initCoralogixRum = async (userId?: string): Promise<void> => {
   if (typeof window === 'undefined') {
@@ -32,37 +68,7 @@ export const initCoralogixRum = async (userId?: string): Promise<void> => {
       return;
     }
 
-    CoralogixRum.init({
-      public_key: config.publicKey,
-      application: config.application,
-      environment: config.environment,
-      version: config.version,
-      coralogixDomain: config.coralogixDomain as CoralogixDomain,
-      ...(config.coralogixDomainUrl ? { coralogixDomainUrl: config.coralogixDomainUrl } : {}),
-      ...(userId
-        ? {
-            user_context: {
-              user_id: userId,
-              user_name: userId,
-            },
-          }
-        : {}),
-      sessionRecordingConfig: {
-        enable: true,
-        autoStartSessionRecording: true,
-        recordConsoleEvents: true,
-        sessionRecordingSampleRate: 100,
-      },
-      instrumentations: {
-        xhr: true,
-        fetch: true,
-        web_vitals: true,
-        interactions: true,
-        errors: true,
-        long_tasks: true,
-        resources: true,
-      },
-    });
+    CoralogixRum.init(buildCoralogixRumInitOptions(config, userId));
 
     markRumReady();
   } catch (error) {
