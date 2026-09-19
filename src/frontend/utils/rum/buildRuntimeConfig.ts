@@ -61,5 +61,6 @@ export const buildRuntimeConfigFromEnv = (
     ...domainFields,
     bugBlocking: parseEnvBoolean(env.DEMO_BUG_BLOCKING, false),
     bugNoisy: parseEnvBoolean(env.DEMO_BUG_NOISY, false),
+    brokenAddToCart: parseEnvBoolean(env.DEMO_BUG_BROKEN_ADD_TO_CART, false),
   };
 };

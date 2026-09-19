@@ -4,6 +4,8 @@
 import { getElementByField } from '../../utils/Cypress';
 import { CypressFields } from '../../utils/enums/CypressFields';
 
+const CHECKOUT_HEALTHY_PRODUCT_IDS = ['L9ECAV7KIM', '2ZYFJ3GM2N'] as const;
+
 describe('Checkout Flow', () => {
   before(() => {
     cy.intercept('POST', '/api/cart*').as('addToCart');
@@ -12,11 +14,19 @@ describe('Checkout Flow', () => {
   });
 
   beforeEach(() => {
-    cy.visit('/');
+    cy.intercept('GET', '/api/runtime-config', {
+      application: 'astronomy-shop-demo',
+      environment: 'demo',
+      version: '1.0.0',
+      coralogixDomain: 'EU2',
+      bugBlocking: false,
+      bugNoisy: false,
+      brokenAddToCart: true,
+    });
   });
 
   it('should create an order with two items', () => {
-    getElementByField(CypressFields.ProductCard).first().click();
+    cy.visit(`/product/${CHECKOUT_HEALTHY_PRODUCT_IDS[0]}`);
     getElementByField(CypressFields.ProductAddToCart).click();
 
     cy.wait('@addToCart');
@@ -26,9 +36,7 @@ describe('Checkout Flow', () => {
     cy.location('href').should('match', /\/cart$/);
     getElementByField(CypressFields.CartItemCount).should('contain', '1');
 
-    cy.visit('/');
-
-    getElementByField(CypressFields.ProductCard).last().click();
+    cy.visit(`/product/${CHECKOUT_HEALTHY_PRODUCT_IDS[1]}`);
     getElementByField(CypressFields.ProductAddToCart).click();
 
     cy.wait('@addToCart');

@@ -10,4 +10,5 @@ export interface RumRuntimeConfig {
   coralogixDomainUrl?: string;
   bugBlocking: boolean;
   bugNoisy: boolean;
+  brokenAddToCart: boolean;
 }

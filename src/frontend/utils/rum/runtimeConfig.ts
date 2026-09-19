@@ -13,6 +13,7 @@ const defaultConfig = (): RumRuntimeConfig => ({
   coralogixDomain: 'EU2',
   bugBlocking: false,
   bugNoisy: false,
+  brokenAddToCart: false,
 });
 
 export const fetchRuntimeConfig = async (): Promise<RumRuntimeConfig> => {

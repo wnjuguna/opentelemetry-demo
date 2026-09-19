@@ -2,8 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
+import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import { buildRuntimeConfigFromEnv, parseEnvBoolean, resolveCoralogixDomain } from './buildRuntimeConfig';
+import {
+  BROKEN_ADD_TO_CART_PRODUCT_IDS,
+  captureBrokenAddToCartError,
+  isBrokenAddToCartProductId,
+} from './events';
+import { markRumReady, resetRumQueue, setRumExecutorForTests } from './rumQueue';
 
 describe('parseEnvBoolean', () => {
   it('returns default for empty values', () => {
@@ -56,6 +62,7 @@ describe('buildRuntimeConfigFromEnv', () => {
       coralogixDomain: 'EU2',
       bugBlocking: false,
       bugNoisy: false,
+      brokenAddToCart: false,
     });
   });
 
@@ -79,5 +86,66 @@ describe('buildRuntimeConfigFromEnv', () => {
   it('accepts CX_RUM_KEY alias', () => {
     const config = buildRuntimeConfigFromEnv({ CX_RUM_KEY: 'alias-key' });
     assert.equal(config.publicKey, 'alias-key');
+  });
+
+  it('defaults brokenAddToCart off for clean 1.0.0', () => {
+    const config = buildRuntimeConfigFromEnv({});
+    assert.equal(config.version, '1.0.0');
+    assert.equal(config.brokenAddToCart, false);
+  });
+
+  it('reads DEMO_BUG_BROKEN_ADD_TO_CART truthy values as on', () => {
+    for (const value of ['true', '1', 'yes', 'on', 'YES', 'ON']) {
+      assert.equal(
+        buildRuntimeConfigFromEnv({ DEMO_BUG_BROKEN_ADD_TO_CART: value }).brokenAddToCart,
+        true,
+        value
+      );
+    }
+  });
+});
+
+describe('broken add to cart demo SKUs and RUM', () => {
+  const originalWindow = globalThis.window;
+
+  beforeEach(() => {
+    resetRumQueue();
+    Object.defineProperty(globalThis, 'window', {
+      configurable: true,
+      value: {},
+    });
+  });
+
+  afterEach(() => {
+    resetRumQueue();
+    Object.defineProperty(globalThis, 'window', {
+      configurable: true,
+      value: originalWindow,
+    });
+  });
+
+  it('lists exactly the two affected Astronomy Shop SKUs', () => {
+    assert.deepEqual([...BROKEN_ADD_TO_CART_PRODUCT_IDS], ['66VCHSJNUP', '9SIQT8TOJO']);
+    assert.equal(isBrokenAddToCartProductId('66VCHSJNUP'), true);
+    assert.equal(isBrokenAddToCartProductId('9SIQT8TOJO'), true);
+    assert.equal(isBrokenAddToCartProductId('OLJCESPC7Z'), false);
+    assert.equal(isBrokenAddToCartProductId('2ZYFJ3GM2N'), false);
+  });
+
+  it('captures broken add to cart errors with expected RUM labels', () => {
+    const captureError = mock.fn();
+    setRumExecutorForTests({ setLabels: mock.fn(), info: mock.fn(), captureError });
+
+    captureBrokenAddToCartError(new Error('add to cart failed'), '66VCHSJNUP');
+    markRumReady();
+
+    assert.equal(captureError.mock.callCount(), 1);
+    assert.deepEqual(captureError.mock.calls[0]?.arguments[1], { product: 'product-detail' });
+    assert.deepEqual(captureError.mock.calls[0]?.arguments[2], {
+      product: 'product-detail',
+      demo_bug: 'broken-add-to-cart',
+      business_impact: 'medium',
+      'demo.product.id': '66VCHSJNUP',
+    });
   });
 });

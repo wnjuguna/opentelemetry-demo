@@ -19,7 +19,11 @@ import AdProvider from '../../../providers/Ad.provider';
 import { useCart } from '../../../providers/Cart.provider';
 import * as S from '../../../styles/ProductDetail.styled';
 import { useCurrency } from '../../../providers/Currency.provider';
-import { captureNoisyProductDetailError } from '../../../utils/rum/events';
+import {
+  captureBrokenAddToCartError,
+  captureNoisyProductDetailError,
+  isBrokenAddToCartProductId,
+} from '../../../utils/rum/events';
 import { setProductLabel } from '../../../utils/rum/labels';
 import { fetchRuntimeConfig } from '../../../utils/rum/runtimeConfig';
 
@@ -87,6 +91,15 @@ const ProductDetail: NextPage = () => {
   ) as { data: Product };
 
   const onAddItem = useCallback(async () => {
+    const runtimeConfig = await fetchRuntimeConfig();
+    if (runtimeConfig.brokenAddToCart && isBrokenAddToCartProductId(productId)) {
+      const error = new Error(
+        `Demo broken add to cart failure: could not add product ${productId}`
+      );
+      captureBrokenAddToCartError(error, productId);
+      throw error;
+    }
+
     await addItem({
       productId,
       quantity,

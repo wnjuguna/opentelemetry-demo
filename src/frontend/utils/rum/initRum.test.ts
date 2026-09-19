@@ -14,6 +14,7 @@ const baseRuntimeConfig = (): RumRuntimeConfig => ({
   coralogixDomain: 'EU2',
   bugBlocking: false,
   bugNoisy: false,
+  brokenAddToCart: false,
 });
 
 describe('buildCoralogixRumInitOptions', () => {
