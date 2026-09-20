@@ -29,9 +29,13 @@ import { fetchRuntimeConfig } from '../../../utils/rum/runtimeConfig';
 
 const quantityOptions = new Array(10).fill(0).map((_, i) => i + 1);
 
+const BROKEN_ADD_TO_CART_MESSAGE =
+  'Could not add this item to your cart. Please try again.';
+
 const ProductDetail: NextPage = () => {
   const { push, query } = useRouter();
   const [quantity, setQuantity] = useState(1);
+  const [addToCartFailure, setAddToCartFailure] = useState<string | null>(null);
   const noisyBugHandled = useRef(false);
   const {
     addItem,
@@ -42,6 +46,7 @@ const ProductDetail: NextPage = () => {
 
   useEffect(() => {
     setQuantity(1);
+    setAddToCartFailure(null);
   }, [productId]);
 
   useEffect(() => {
@@ -97,9 +102,11 @@ const ProductDetail: NextPage = () => {
         `Broken add to cart failure: could not add product ${productId}`
       );
       captureBrokenAddToCartError(error, productId);
-      throw error;
+      setAddToCartFailure(BROKEN_ADD_TO_CART_MESSAGE);
+      return;
     }
 
+    setAddToCartFailure(null);
     await addItem({
       productId,
       quantity,
@@ -142,9 +149,14 @@ const ProductDetail: NextPage = () => {
                   </option>
                 ))}
               </Select>
-              <S.AddToCart data-cy={CypressFields.ProductAddToCart} onClick={onAddItem}>
-                <Image src="/icons/Cart.svg" height="15" width="15" alt="cart" /> Add To Cart
-              </S.AddToCart>
+              <S.AddToCartBlock>
+                <S.AddToCart data-cy={CypressFields.ProductAddToCart} onClick={onAddItem}>
+                  <Image src="/icons/Cart.svg" height="15" width="15" alt="cart" /> Add To Cart
+                </S.AddToCart>
+                {addToCartFailure ? (
+                  <S.AddToCartFailure role="alert">{addToCartFailure}</S.AddToCartFailure>
+                ) : null}
+              </S.AddToCartBlock>
             </S.Details>
           </S.Container>
           <Recommendations />

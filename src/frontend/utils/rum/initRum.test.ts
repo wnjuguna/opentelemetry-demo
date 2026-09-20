@@ -56,4 +56,16 @@ describe('buildCoralogixRumInitOptions', () => {
     assert.equal(withCustomIngress.coralogixDomainUrl, 'https://rum-proxy.example.com');
     assert.equal('coralogixDomainUrl' in withoutCustomIngress, false);
   });
+
+  it('enables session recording with immediate flush', () => {
+    const options = buildCoralogixRumInitOptions(baseRuntimeConfig());
+
+    assert.deepEqual(options.sessionRecordingConfig, {
+      enable: true,
+      autoStartSessionRecording: true,
+      recordConsoleEvents: true,
+      sessionRecordingSampleRate: 100,
+      immediateFlush: true,
+    });
+  });
 });

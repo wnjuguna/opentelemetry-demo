@@ -41,6 +41,17 @@ export const Details = styled.div<{ $fullWidth?: boolean }>`
   ${({ $fullWidth }) => $fullWidth && 'grid-column: 1 / -1;'}
 `;
 
+export const AddToCartBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+
+  ${({ theme }) => theme.breakpoints.desktop} {
+    width: 220px;
+  }
+`;
+
 export const AddToCart = styled(Button)`
   display: flex;
   align-items: center;
@@ -52,8 +63,14 @@ export const AddToCart = styled(Button)`
 
   ${({ theme }) => theme.breakpoints.desktop} {
     font-size: ${({ theme }) => theme.sizes.dMedium};
-    width: 220px;
   }
+`;
+
+export const AddToCartFailure = styled.p`
+  margin: 0;
+  color: ${({ theme }) => theme.colors.otelRed};
+  font-size: ${({ theme }) => theme.sizes.dSmall};
+  font-weight: ${({ theme }) => theme.fonts.regular};
 `;
 
 export const Name = styled.h5`

@@ -29,6 +29,7 @@ export const buildCoralogixRumInitOptions = (config: RumRuntimeConfig, userId?: 
     autoStartSessionRecording: true,
     recordConsoleEvents: true,
     sessionRecordingSampleRate: 100,
+    immediateFlush: true,
   },
   traceParentInHeader: {
     enabled: true,

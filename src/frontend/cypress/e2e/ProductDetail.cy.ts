@@ -6,6 +6,8 @@ import { CypressFields } from '../../utils/enums/CypressFields';
 
 const BROKEN_ADD_TO_CART_PRODUCT_IDS = ['66VCHSJNUP', '9SIQT8TOJO'] as const;
 const HEALTHY_ADD_TO_CART_PRODUCT_ID = 'L9ECAV7KIM';
+const BROKEN_ADD_TO_CART_INLINE_MESSAGE =
+  'Could not add this item to your cart. Please try again.';
 
 const baseRuntimeConfig = {
   application: 'astronomy-shop-demo',
@@ -121,34 +123,21 @@ describe('broken add to cart demo bug', () => {
         stubRuntimeConfig(true);
         cy.intercept('POST', '/api/cart*').as('addToCart');
 
-        cy.on('uncaught:exception', err => {
-          expect(err.message).to.include('Broken add to cart failure');
-          return false;
-        });
-
         visitProductDetail(productId);
         cy.wait('@runtimeConfig');
 
-        let brokenAddToCartSettled!: Promise<void>;
-
-        cy.window().then(win => {
-          brokenAddToCartSettled = new Cypress.Promise<void>(resolve => {
-            win.addEventListener(
-              'unhandledrejection',
-              event => {
-                expect(String(event.reason?.message)).to.include('Broken add to cart failure');
-                resolve();
-              },
-              { once: true }
-            );
-          });
-        });
-
         getElementByField(CypressFields.ProductAddToCart).click();
-        cy.then(() => brokenAddToCartSettled);
 
+        cy.get('[role="alert"]')
+          .should('be.visible')
+          .and('contain', BROKEN_ADD_TO_CART_INLINE_MESSAGE);
         cy.get('@addToCart.all').should('have.length', 0);
         cy.location('pathname').should('eq', `/product/${productId}`);
+
+        getElementByField(CypressFields.ProductAddToCart).should('be.visible').click();
+        cy.get('@addToCart.all').should('have.length', 0);
+        cy.location('pathname').should('eq', `/product/${productId}`);
+        cy.get('[role="alert"]').should('be.visible');
       });
     });
 
