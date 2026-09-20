@@ -122,7 +122,7 @@ describe('broken add to cart demo bug', () => {
         cy.intercept('POST', '/api/cart*').as('addToCart');
 
         cy.on('uncaught:exception', err => {
-          expect(err.message).to.include('Demo broken add to cart failure');
+          expect(err.message).to.include('Broken add to cart failure');
           return false;
         });
 
@@ -136,7 +136,7 @@ describe('broken add to cart demo bug', () => {
             win.addEventListener(
               'unhandledrejection',
               event => {
-                expect(String(event.reason?.message)).to.include('Demo broken add to cart failure');
+                expect(String(event.reason?.message)).to.include('Broken add to cart failure');
                 resolve();
               },
               { once: true }

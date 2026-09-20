@@ -63,7 +63,7 @@ const CartDetail = () => {
       const runtimeConfig = await fetchRuntimeConfig();
       if (runtimeConfig.bugBlocking) {
         captureBlockingCheckoutError(
-          new Error('Demo blocking checkout failure: place order rejected')
+          new Error('Blocking checkout failure: place order rejected')
         );
         setBlockingError(BLOCKING_CHECKOUT_MESSAGE);
         return;

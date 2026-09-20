@@ -94,7 +94,7 @@ const ProductDetail: NextPage = () => {
     const runtimeConfig = await fetchRuntimeConfig();
     if (runtimeConfig.brokenAddToCart && isBrokenAddToCartProductId(productId)) {
       const error = new Error(
-        `Demo broken add to cart failure: could not add product ${productId}`
+        `Broken add to cart failure: could not add product ${productId}`
       );
       captureBrokenAddToCartError(error, productId);
       throw error;
